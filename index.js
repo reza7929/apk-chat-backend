@@ -3,9 +3,14 @@ require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` });
 const http = require("http"); // for http connection
 const express = require("express"); // for transfer the data
 const mongoose = require("mongoose");
+const routes = require("./routes");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const { getChatID } = require("./functions/getChatID");
 
 const app = express();
+app.use(cors());
+app.use(bodyParser.json());
 const server = http.createServer(app);
 
 const io = require("socket.io")(server, {
@@ -22,13 +27,25 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
 
   console.log("connected to db");
   io.on("connection", async (socket) => {
-    // socket.on("isOnLine", ({ name, room }, callBack) => {})
-
     const collection = db.collection("massages");
-    const fromID = 1;
-    const toID = 3;
+    const userCollection = db.collection("users");
+    const handshakeData = socket.request;
+    const fromID = handshakeData._query["fromID"];
+    const toID = handshakeData._query["toID"];
     const chatID = getChatID(fromID, toID);
 
+    // if (parseInt(fromID)) {
+    //   await userCollection.findOneAndUpdate(
+    //     { id: 2 },
+    //     {},
+    //     {
+    //       upsert: true,
+    //       new: true,
+    //       setDefaultsOnInsert: true,
+    //     }
+    //   );
+    //   console.log({ fromID });
+    // }
     // Create function to send status
     sendStatus = (value) => {
       socket.emit("status", value);
@@ -57,21 +74,18 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
           },
         },
       };
-      const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+      const options = {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      };
       await collection.findOneAndUpdate(query, update, options);
       io.emit("allMassages", [{ fromID, text, time }]);
     });
-
-    // Handle clear
-    socket.on("clear", (data) => {
-      // Remove all chats from collection
-      chat.remove({}, () => {
-        // Emit cleared
-        socket.emit("اطلاعات چت پاک شد");
-      });
-    });
   });
 });
+
+app.use("/", routes);
 
 const PORT = process.env.PORT || 5000;
 
