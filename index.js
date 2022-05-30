@@ -21,7 +21,9 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
   if (err) return console.log(err);
 
   console.log("connected to db");
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
+    // socket.on("isOnLine", ({ name, room }, callBack) => {})
+
     const collection = db.collection("massages");
     const fromID = 1;
     const toID = 3;
@@ -32,14 +34,8 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
       socket.emit("status", value);
     };
 
-    socket.on("allMassages", async () => {
-      try {
-        const res = await collection.findOne({ chatID });
-        socket.emit("allMassagesRes", res?.details);
-      } catch (err) {
-        console.log(err);
-      }
-    });
+    const res = await collection.findOne({ chatID });
+    socket.emit("allMassages", res?.details);
 
     // Handle input events
     socket.on("sendMessage", async (data) => {
@@ -50,31 +46,20 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
       // const collection = db.collection("massages");
 
       // Insert massage
+      const time = Date.now();
       const query = { chatID };
       const update = {
         $push: {
           details: {
             fromID,
             text,
-            time: Date.now(),
+            time,
           },
         },
       };
       const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-      await collection.findOneAndUpdate(
-        query,
-        update,
-        options
-        // () => {
-        //   io.emit("output", [data]);
-
-        //   // Send status object
-        //   sendStatus({
-        //     massage: "پیام ارسال شد",
-        //     clear: true,
-        //   });
-        // }
-      );
+      await collection.findOneAndUpdate(query, update, options);
+      io.emit("allMassages", [{ fromID, text, time }]);
     });
 
     // Handle clear
