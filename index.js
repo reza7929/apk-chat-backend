@@ -29,39 +29,32 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
   io.on("connection", async (socket) => {
     const collection = db.collection("massages");
     const userCollection = db.collection("users");
-    const handshakeData = socket.request;
-    const fromID = handshakeData._query["fromID"];
-    const toID = handshakeData._query["toID"];
-    const chatID = getChatID(fromID, toID);
+    const handshakeData = await socket.request;
+    const fromID = parseInt(handshakeData._query["fromID"]);
 
-    // if (parseInt(fromID)) {
-    //   await userCollection.findOneAndUpdate(
-    //     { id: 2 },
-    //     {},
-    //     {
-    //       upsert: true,
-    //       new: true,
-    //       setDefaultsOnInsert: true,
-    //     }
-    //   );
-    //   console.log({ fromID });
-    // }
-    // Create function to send status
-    sendStatus = (value) => {
-      socket.emit("status", value);
-    };
+    await userCollection.findOneAndUpdate(
+      { id: fromID },
+      { $set: { isOnline: true } }
+    );
 
-    const res = await collection.findOne({ chatID });
-    socket.emit("allMassages", res?.details);
+    socket.on("allUsers", async () => {
+      const res = await userCollection.find().toArray();
+      io.emit("allUsersRes", res);
+    });
+
+    socket.on("allMassages", async (item) => {
+      const chatID = getChatID(fromID, item.oppositID);
+      const res = await collection.findOne({ chatID });
+      socket.emit("allMassagesRes", res?.details);
+    });
 
     // Handle input events
     socket.on("sendMessage", async (data) => {
       const text = data.massage;
-
       // Check for name and massage
       if (!text) return sendStatus("فیلد ارسالی نمیتواند خالی باشد");
       // const collection = db.collection("massages");
-
+      const chatID = getChatID(fromID, data.oppositID);
       // Insert massage
       const time = Date.now();
       const query = { chatID };
@@ -80,7 +73,16 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
         setDefaultsOnInsert: true,
       };
       await collection.findOneAndUpdate(query, update, options);
-      io.emit("allMassages", [{ fromID, text, time }]);
+      socket.emit("sendMessageRes", [{ fromID, text, time }]);
+    });
+
+    socket.on("disconnect", async () => {
+      await userCollection.findOneAndUpdate(
+        { id: fromID },
+        { $set: { isOnline: false } }
+      );
+      const res = await userCollection.find().toArray();
+      io.emit("allUsersRes", res);
     });
   });
 });
