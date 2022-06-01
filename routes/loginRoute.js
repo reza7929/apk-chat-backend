@@ -34,13 +34,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.post("/users-info", async (req, res) => {
-  try {
-    const users = await User.find();
-    res.send(users);
-  } catch (err) {
-    console.log(err);
-  }
-});
-
 module.exports = router;
