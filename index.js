@@ -7,6 +7,7 @@ const routes = require("./routes");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { getChatID } = require("./functions/getChatID");
+const auth = require("./middleware/auth");
 
 const app = express();
 app.use(cors());
@@ -24,8 +25,8 @@ const io = require("socket.io")(server, {
 
 mongoose.connect(process.env.DATABASE_URL, (err, db) => {
   if (err) return console.log(err);
-
   console.log("connected to db");
+
   io.on("connection", async (socket) => {
     const collection = db.collection("massages");
     const userCollection = db.collection("users");
@@ -87,6 +88,9 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
   });
 });
 
+app.post("/auth", auth, (req, res) => {
+  res.status(200).send("active");
+});
 app.use("/", routes);
 
 const PORT = process.env.PORT || 5000;
