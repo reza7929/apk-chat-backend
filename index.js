@@ -45,7 +45,7 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
     socket.on("allMassages", async (item) => {
       const chatID = getChatID(fromID, item.oppositID);
       const res = await collection.findOne({ chatID });
-      socket.emit("allMassagesRes", res?.details);
+      io.emit(chatID, res?.details);
     });
 
     // Handle input events
