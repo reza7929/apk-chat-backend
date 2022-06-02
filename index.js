@@ -89,7 +89,7 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
 });
 
 app.post("/auth", auth, (req, res) => {
-  res.status(200).send("active");
+  res.status(200).send();
 });
 app.use("/", routes);
 
