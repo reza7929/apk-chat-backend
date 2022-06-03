@@ -18,9 +18,13 @@ router.post("/", async (req, res) => {
     if (!(await bcrypt.compare(password, userFound.password)))
       return res.status(400).send("رمز عبور اشتباه است");
     // create the token
-    const token = jwt.sign({ userName }, process.env.TOKEN_KEY, {
-      expiresIn: "2h",
-    });
+    const token = jwt.sign(
+      { id: userFound.id, userName },
+      process.env.TOKEN_KEY,
+      {
+        expiresIn: "2h",
+      }
+    );
 
     return res.send(token);
   } catch (err) {
