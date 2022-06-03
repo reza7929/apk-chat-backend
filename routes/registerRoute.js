@@ -2,6 +2,7 @@ const express = require("express");
 const { User } = require("../model/userModel");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 router.post("/", async (req, res) => {
   const { userName, password } = req.body;
@@ -25,11 +26,14 @@ router.post("/", async (req, res) => {
       isOnline: false,
       createAt: Date.now(),
     });
+    const token = jwt.sign({ userName }, process.env.TOKEN_KEY, {
+      expiresIn: "2h",
+    });
 
-    return res.send();
+    return res.send(token);
   } catch (err) {
     console.log(err);
-    return res.status(500).send();
+    return res.status(500).send("خطای سرور");
   }
 });
 
