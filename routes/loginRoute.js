@@ -8,6 +8,7 @@ router.post("/", async (req, res) => {
   const { userName, password } = req.body;
 
   try {
+    //check incomming data
     if (!userName || !password)
       return res.status(400).send("فیلد نمیتواند خالی باشد");
 
@@ -25,7 +26,7 @@ router.post("/", async (req, res) => {
         expiresIn: "2h",
       }
     );
-
+    //send token to the user
     return res.send(token);
   } catch (err) {
     console.log(err);

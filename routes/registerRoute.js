@@ -8,6 +8,7 @@ router.post("/", async (req, res) => {
   const { userName, password } = req.body;
 
   try {
+    //check incomming data
     if (!userName || !password)
       return res.status(400).send("فیلد نمیتواند خالی باشد");
 
@@ -26,10 +27,11 @@ router.post("/", async (req, res) => {
       isOnline: false,
       createAt: Date.now(),
     });
+    //create token
     const token = jwt.sign({ id, userName }, process.env.TOKEN_KEY, {
       expiresIn: "2h",
     });
-
+    //send token to the client
     return res.send(token);
   } catch (err) {
     console.log(err);
