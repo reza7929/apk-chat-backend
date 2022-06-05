@@ -45,8 +45,10 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
 
     socket.on("allMassages", async (item) => {
       const chatID = getChatID(fromID, item.oppositID);
+      socket.join(chatID);
       const res = await collection.findOne({ chatID });
-      io.emit(chatID, res?.details);
+
+      socket.emit("massagesRes", res?.details);
     });
 
     // Handle input events
@@ -74,7 +76,8 @@ mongoose.connect(process.env.DATABASE_URL, (err, db) => {
         setDefaultsOnInsert: true,
       };
       await collection.findOneAndUpdate(query, update, options);
-      socket.emit("sendMessageRes", [{ fromID, text, time }]);
+
+      io.to(chatID).emit("massagesRes", [{ fromID, text, time }]);
     });
 
     socket.on("disconnect", async () => {
