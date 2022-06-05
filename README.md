@@ -1,7 +1,7 @@
 ## مستند معماری
 
 این سورس کد بک اند برنامه چت آنلاین میباشد. شما میتوانید جزیئات برنامه را در لینک زیر ببینید:
-[front-end-repo](https://gitlab.com/reza7929/apk-chat-front)
+[front-end-repo](https://github.com/reza7929/apk-chat-front)
 
 ## مستند نحوه ی پیاده سازی
 
