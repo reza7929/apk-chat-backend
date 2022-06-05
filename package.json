@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "yarn && NODE_ENV=development npx nodemon index.js --update-env",
+    "start": "yarn && NODE_ENV=production npx nodemon index.js --update-env",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
